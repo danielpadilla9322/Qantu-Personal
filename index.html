@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Qantu">
+<meta name="theme-color" content="#0e0c09">
+<link rel="manifest" id="pwa-manifest">
+<title>Qantu · Control</title>
+<style>
+:root {
+  --bg: #0e0c09;
+  --card: #1a1710;
+  --card2: #201e15;
+  --border: #3a3520;
+  --gold: #c9a84c;
+  --gold-light: #e8c96a;
+  --gold-dim: rgba(201,168,76,0.15);
+  --cream: #f5eed8;
+  --muted: #8a8070;
+  --green: #7eb8a4;
+  --green-dim: rgba(126,184,164,0.15);
+  --red: #c47e6a;
+  --red-dim: rgba(196,126,106,0.15);
+  --blue: #7aa8c4;
+  --blue-dim: rgba(122,168,196,0.15);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; background:var(--bg); color:var(--cream); font-family:-apple-system,'SF Pro Text','DM Sans',sans-serif; overflow-x:hidden; }
+
+/* ── HEADER ── */
+.app-header {
+  position:sticky; top:0; z-index:50;
+  background:rgba(14,12,9,0.95); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:14px 16px 12px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.app-title { font-size:18px; font-weight:700; color:var(--cream); letter-spacing:-0.01em; border-radius:4px; padding:1px 4px; margin:-1px -4px; outline:none; cursor:text; }
+.app-title:focus { background:rgba(201,168,76,0.14); box-shadow:0 0 0 1.5px rgba(201,168,76,0.4); }
+.app-subtitle { font-size:11px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-top:1px; }
+.header-right { display:flex; gap:8px; }
+.btn-icon-hdr {
+  width:36px; height:36px; border-radius:10px; border:1px solid var(--border);
+  background:var(--card); color:var(--muted); display:flex; align-items:center;
+  justify-content:center; cursor:pointer; font-size:16px; transition:all 0.15s;
+}
+.btn-icon-hdr:active { background:var(--card2); color:var(--cream); }
+
+/* ── MONTH BAR ── */
+.month-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 16px; background:var(--card); border-bottom:1px solid var(--border);
+}
+.month-nav { width:32px; height:32px; border-radius:8px; border:1px solid var(--border);
+  background:transparent; color:var(--muted); cursor:pointer; font-size:16px;
+  display:flex; align-items:center; justify-content:center; }
+.month-nav:active { background:var(--card2); }
+.month-label { font-size:15px; font-weight:600; color:var(--cream); }
+
+/* ── STUDENT LIST ── */
+.list-wrap { padding:12px 12px 100px; }
+.student-card {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  margin-bottom:8px; cursor:pointer; transition:border-color 0.15s;
+  overflow:hidden;
+}
+.student-card:active { border-color:var(--gold); }
+.student-card.not-started {
+  background: var(--card);
+  border-color: var(--border);
+  border-style: dashed;
+  opacity: 0.45;
+  cursor: default;
+}
+.student-card.not-started:active { border-color: var(--border); }
+.student-row {
+  display:flex; align-items:center; gap:12px; padding:12px 14px;
+}
+.avatar {
+  width:40px; height:40px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:700; letter-spacing:-0.02em;
+}
+.meta-time {
+  color:var(--gold); font-weight:600;
+}
+.meta-sep {
+  margin:0 3px; color:var(--border);
+}
+.student-info { flex:1; min-width:0; }
+.student-name { font-size:15px; font-weight:600; color:var(--cream); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.student-meta { font-size:11px; color:var(--muted); margin-top:1px; }
+.student-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+.classes-dots { display:flex; gap:3px; }
+.dot {
+  width:8px; height:8px; border-radius:50%;
+  border:1.5px solid var(--border); background:transparent; transition:all 0.2s;
+}
+.dot.done { background:var(--green); border-color:var(--green); }
+.payment-badge {
+  font-size:10px; font-weight:600; letter-spacing:0.04em; padding:2px 7px;
+  border-radius:20px; text-transform:uppercase;
+}
+.badge-paid     { background:var(--green-dim); color:var(--green); }
+.badge-inactive { background:transparent; color:var(--border); border:1px solid var(--border); font-size:9px; }
+.badge-unpaid { background:var(--red-dim);   color:var(--red);   }
+.badge-partial{ background:var(--gold-dim);  color:var(--gold);  }
+
+/* ── FAB ── */
+.fab {
+  position:fixed; bottom:24px; right:20px; z-index:60;
+  width:52px; height:52px; border-radius:50%; border:none;
+  background:var(--gold); color:#0e0c09; font-size:22px; font-weight:300;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  box-shadow:0 4px 20px rgba(201,168,76,0.35); transition:transform 0.15s;
+}
+.fab:active { transform:scale(0.93); }
+
+/* ── DETAIL PANEL ── */
+.detail-overlay {
+  position:fixed; inset:0; z-index:80;
+  background:rgba(0,0,0,0.6); opacity:0; pointer-events:none; transition:opacity 0.25s;
+}
+.detail-overlay.open { opacity:1; pointer-events:all; }
+.detail-panel {
+  position:fixed; bottom:0; left:0; right:0; z-index:90;
+  background:var(--bg); border-top:1px solid var(--border);
+  border-radius:20px 20px 0 0; max-height:92vh; overflow-y:auto;
+  transform:translateY(100%); transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);
+}
+.detail-panel.open { transform:translateY(0); }
+.drag-handle {
+  width:36px; height:4px; border-radius:2px; background:var(--border);
+  margin:10px auto 0;
+}
+.detail-header {
+  display:flex; align-items:center; gap:12px; padding:16px 18px 12px;
+  border-bottom:1px solid var(--border);
+}
+.detail-avatar { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; flex-shrink:0; }
+.detail-name { font-size:17px; font-weight:700; color:var(--cream); border-radius:4px; padding:1px 4px; margin:-1px -4px; outline:none; cursor:text; transition:background 0.15s; }
+.detail-name:hover { background:rgba(201,168,76,0.08); }
+.detail-name:focus { background:rgba(201,168,76,0.14); box-shadow:0 0 0 1.5px rgba(201,168,76,0.35); }
+.detail-sub  { font-size:12px; color:var(--muted); margin-top:1px; }
+.start-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
+  padding:3px 8px; border-radius:20px; margin-left:10px; vertical-align:middle;
+  border:1px solid rgba(201,168,76,0.35); background:rgba(201,168,76,0.08); color:var(--gold);
+  cursor:pointer; transition:background 0.15s;
+}
+.start-badge:hover { background:rgba(201,168,76,0.16); }
+.start-select {
+  background:var(--card2); border:1px solid var(--gold); border-radius:8px;
+  color:var(--gold); font-size:11px; padding:3px 6px; outline:none; cursor:pointer;
+  font-family:inherit; margin-left:10px;
+}
+.start-select option { background:#1a1710; }
+.detail-close {
+  margin-left:auto; width:30px; height:30px; border-radius:8px;
+  border:1px solid var(--border); background:transparent; color:var(--muted);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px;
+}
+.section { padding:16px 18px; border-bottom:1px solid var(--border); }
+.section-title { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+
+/* Classes grid */
+.classes-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.class-cell {
+  border:1.5px solid var(--border); border-radius:10px; padding:10px 6px 8px;
+  text-align:center; transition:all 0.15s; background:var(--card);
+  user-select:none;
+}
+.class-cell.done { background:var(--green-dim); border-color:var(--green); }
+.class-num { font-size:10px; color:var(--muted); margin-bottom:4px; }
+.class-check { font-size:18px; cursor:pointer; display:inline-block; transition:transform 0.15s; }
+.class-check:active { transform:scale(0.8); }
+.class-date-wrap { margin-top:5px; border-top:1px solid var(--border); padding-top:4px; }
+.class-cell.done .class-date-wrap { border-top-color:rgba(126,184,164,0.3); }
+.class-date-input {
+  width:100%; background:transparent; border:none;
+  color:var(--muted); font-size:9px; text-align:center; outline:none;
+  cursor:pointer; font-family:inherit;
+}
+
+
+/* Payment form */
+.pay-status-row { display:flex; gap:8px; margin-bottom:12px; }
+
+
+.form-row { display:flex; gap:8px; margin-bottom:10px; }
+.form-group { flex:1; }
+.form-label { font-size:10px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px; display:block; }
+.form-input, .form-select {
+  width:100%; background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:9px 10px; color:var(--cream);
+  font-size:14px; outline:none; transition:border-color 0.15s;
+  -webkit-appearance:none;
+}
+.form-input:focus, .form-select:focus { border-color:var(--gold); }
+.form-select option { background:#1a1710; }
+
+/* Tarifa pills */
+.tarifa-row { display:flex; gap:6px; margin-bottom:12px; }
+.tarifa-pill {
+  flex:1; padding:8px 4px; border-radius:10px; border:1.5px solid var(--border);
+  background:var(--card); color:var(--muted); font-size:11px; font-weight:600;
+  cursor:pointer; text-align:center; transition:all 0.15s;
+}
+.tarifa-pill.active { border-color:var(--gold); background:var(--gold-dim); color:var(--gold-light); }
+.tarifa-sub { font-size:9px; font-weight:400; display:block; margin-top:1px; opacity:0.7; }
+
+/* Payment method */
+.method-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.method-chip {
+  padding:6px 12px; border-radius:20px; border:1.5px solid var(--border);
+  background:var(--card); color:var(--muted); font-size:11px; cursor:pointer; transition:all 0.15s;
+}
+.method-chip.active { border-color:var(--blue); background:var(--blue-dim); color:var(--blue); }
+
+/* Notes */
+.notes-input {
+  width:100%; background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:9px 10px; color:var(--cream);
+  font-size:13px; outline:none; resize:none; min-height:60px; font-family:inherit;
+  transition:border-color 0.15s;
+}
+.notes-input:focus { border-color:var(--gold); }
+
+/* Danger zone */
+.danger-btn {
+  width:100%; padding:11px; border-radius:10px; border:1px solid rgba(196,126,106,0.3);
+  background:transparent; color:var(--red); font-size:13px; cursor:pointer; margin-top:4px;
+  transition:background 0.15s;
+}
+.danger-btn:active { background:var(--red-dim); }
+.section-disabled { opacity:0.3; pointer-events:none; }
+
+/* ── ADD STUDENT MODAL ── */
+.modal-overlay {
+  position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.7);
+  display:flex; align-items:flex-end; opacity:0; pointer-events:none; transition:opacity 0.2s;
+}
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal-box {
+  background:var(--bg); border-top:1px solid var(--border);
+  border-radius:20px 20px 0 0; width:100%; padding:20px 18px 40px;
+  transform:translateY(100%); transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);
+}
+.modal-overlay.open .modal-box { transform:translateY(0); }
+.modal-title { font-size:17px; font-weight:700; color:var(--cream); margin-bottom:18px; }
+.modal-actions { display:flex; gap:10px; margin-top:18px; }
+.btn-cancel { flex:1; padding:11px; border-radius:10px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:14px; cursor:pointer; }
+.btn-confirm { flex:2; padding:11px; border-radius:10px; border:none; background:var(--gold); color:#0e0c09; font-size:14px; font-weight:700; cursor:pointer; }
+
+/* ── TOAST ── */
+.toast {
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(8px);
+  background:rgba(126,184,164,0.2); border:1px solid rgba(126,184,164,0.4);
+  color:var(--green); padding:8px 16px; border-radius:30px; font-size:12px;
+  opacity:0; transition:opacity 0.3s,transform 0.3s; pointer-events:none; z-index:200;
+  white-space:nowrap;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* Empty state */
+.empty { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
+
+/* Section bottom padding */
+.detail-bottom { height:40px; }
+
+/* ── RENTAL BADGE ── */
+.rental-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:9px; font-weight:600; padding:2px 6px; border-radius:20px;
+  border:1px solid rgba(122,168,196,0.4); background:rgba(122,168,196,0.1);
+  color:var(--blue); margin-left:5px; vertical-align:middle; flex-shrink:0;
+}
+
+/* ── TOGGLE SWITCH ── */
+.toggle-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; margin-bottom:6px; }
+.toggle-label { font-size:13px; color:var(--cream); }
+.toggle-sub { font-size:11px; color:var(--muted); margin-top:1px; }
+.toggle-switch {
+  width:44px; height:26px; border-radius:13px; border:none; cursor:pointer;
+  position:relative; transition:background 0.2s; flex-shrink:0;
+}
+.toggle-switch.off { background:var(--border); }
+.toggle-switch.on  { background:var(--gold); }
+.toggle-switch::after {
+  content:''; position:absolute; top:3px; width:20px; height:20px;
+  border-radius:50%; background:white; transition:left 0.2s;
+}
+.toggle-switch.off::after { left:3px; }
+.toggle-switch.on::after  { left:21px; }
+
+/* ── STUDENT TYPE CHIPS ── */
+.stype-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.stype-chip {
+  padding:6px 10px; border-radius:20px; border:1.5px solid var(--border);
+  background:var(--card); color:var(--muted); font-size:11px; cursor:pointer; transition:all 0.15s;
+}
+.stype-chip.active { border-color:var(--green); background:var(--green-dim); color:var(--green); }
+
+/* ── EXCEPTION BOX ── */
+.exception-box {
+  background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.2);
+  border-radius:10px; padding:12px; margin-top:10px;
+}
+.exception-label {
+  font-size:10px; color:var(--gold); letter-spacing:0.06em;
+  text-transform:uppercase; margin-bottom:8px; font-weight:600; display:block;
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <div class="app-title" id="app-title" contenteditable="true" spellcheck="false" title="Toca para editar">Escuela Qantu</div>
+    <div class="app-subtitle">Control de clases y pagos</div>
+    <div id="sync-status" style="font-size:9px;letter-spacing:0.06em;margin-top:2px;color:var(--muted)">○ conectando…</div>
+  </div>
+  <div class="header-right">
+    <button class="btn-icon-hdr" onclick="openAddModal()" title="Nuevo alumno">＋</button>
+  </div>
+</div>
+
+<div class="month-bar">
+  <button class="month-nav" onclick="changeMonth(-1)">‹</button>
+  <span class="month-label" id="month-label"></span>
+  <button class="month-nav" onclick="changeMonth(1)">›</button>
+</div>
+
+<div class="list-wrap" id="student-list"></div>
+
+<button class="fab" onclick="openAddModal()">＋</button>
+
+<!-- DETAIL PANEL -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detail-panel">
+  <div class="drag-handle"></div>
+  <div class="detail-header">
+    <div class="detail-avatar" id="d-avatar"></div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+        <div class="detail-name" id="d-name" contenteditable="true" spellcheck="false"></div>
+        <span id="d-start-badge" class="start-badge"></span>
+      </div>
+      <div class="detail-sub" id="d-sub"></div>
+    </div>
+    <button class="detail-close" onclick="closeDetail()">✕</button>
+  </div>
+
+  <!-- Classes -->
+  <div class="section">
+    <div class="section-title">Clases del mes</div>
+    <div class="classes-grid" id="d-classes"></div>
+  </div>
+
+  <!-- Tarifa -->
+  <div class="section" id="d-tarifa-section">
+    <div class="section-title">Tarifa</div>
+    <div class="tarifa-row" id="d-tarifa"></div>
+  </div>
+
+  <!-- Tipo de alumno -->
+  <div class="section" id="d-stype-section">
+    <div class="section-title">Tipo de alumno</div>
+    <div class="stype-row" id="d-stype"></div>
+  </div>
+
+  <!-- Opciones -->
+  <div class="section">
+    <div class="section-title">Opciones</div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Alquiler de instrumento</div>
+        <div class="toggle-sub">El alumno alquila un instrumento de la escuela</div>
+      </div>
+      <button class="toggle-switch off" id="d-rental-toggle" onclick="toggleRental()"></button>
+    </div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Clase grupal</div>
+        <div class="toggle-sub">Monto fijo y número de clases personalizado</div>
+      </div>
+      <button class="toggle-switch off" id="d-grupal-toggle" onclick="toggleGrupal()"></button>
+    </div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Alumno libre</div>
+        <div class="toggle-sub">Monto fijo y clases personalizadas (sin tarifa)</div>
+      </div>
+      <button class="toggle-switch off" id="d-exception-toggle" onclick="toggleException()"></button>
+    </div>
+    <div id="d-exception-box" style="display:none">
+      <div class="exception-box">
+        <span class="exception-label">Configuración de excepción</span>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Monto fijo (S/.)</label>
+            <input class="form-input" id="d-fixed-amount" type="number" placeholder="0.00" oninput="saveStudentField('fixedAmount', this.value)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Clases al mes</label>
+            <input class="form-input" id="d-custom-classes" type="number" min="1" max="20" placeholder="4" oninput="saveStudentField('customClasses', parseInt(this.value)||4)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Horario -->
+  <div class="section">
+    <div class="section-title">Horario</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Día</label>
+        <select class="form-select" id="d-day" onchange="saveStudentField('day', this.value)">
+          <option value="Lunes">Lunes</option>
+          <option value="Martes">Martes</option>
+          <option value="Miércoles">Miércoles</option>
+          <option value="Jueves">Jueves</option>
+          <option value="Viernes">Viernes</option>
+          <option value="Sábado">Sábado</option>
+          <option value="Por definir">Por definir</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora inicio</label>
+        <input class="form-input" id="d-time-start" type="time" oninput="saveStudentField('time', this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora fin</label>
+        <input class="form-input" id="d-time-end" type="time" oninput="saveStudentField('timeEnd', this.value)">
+      </div>
+    </div>
+  </div>
+
+  <!-- Pago -->
+  <div class="section" id="d-payment-section">
+    <div class="section-title">Pago</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Monto (S/.)</label>
+        <input class="form-input" id="d-amount" type="number" placeholder="0.00" oninput="saveDetailField('amount', this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha de pago</label>
+        <input class="form-input" id="d-paydate" type="date" oninput="saveDetailField('payDate', this.value)">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Método de pago</label>
+      <div class="method-row" id="d-methods"></div>
+    </div>
+  </div>
+
+  <!-- Destino del pago -->
+  <div class="section" id="d-dest-section">
+    <div class="section-title">Destino del pago</div>
+    <div class="method-row" id="d-dest"></div>
+  </div>
+
+  <!-- Notas -->
+  <div class="section">
+    <div class="section-title">Notas</div>
+    <textarea class="notes-input" id="d-notes" placeholder="Observaciones del mes..." oninput="saveDetailField('notes', this.value)"></textarea>
+  </div>
+
+  <!-- Danger -->
+  <div class="section">
+    <button class="danger-btn" onclick="deleteStudent()">Eliminar alumno</button>
+  </div>
+  <div class="detail-bottom"></div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal-box">
+    <div class="modal-title">Nuevo alumno</div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Nombre completo</label>
+      <input class="form-input" id="new-name" placeholder="Ej: Renzo Jiménez">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Día</label>
+        <select class="form-select" id="new-day">
+          <option value="Lunes">Lunes</option>
+          <option value="Martes">Martes</option>
+          <option value="Miércoles">Miércoles</option>
+          <option value="Jueves">Jueves</option>
+          <option value="Viernes">Viernes</option>
+          <option value="Sábado">Sábado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora</label>
+        <input class="form-input" id="new-time" type="time" value="16:00">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Tarifa inicial</label>
+      <select class="form-select" id="new-tarifa">
+        <option value="A">A · 30 min</option>
+        <option value="B">B · 45 min</option>
+        <option value="C">C · 1 hora</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Destino de pago</label>
+      <select class="form-select" id="new-dest">
+        <option value="Profesor">Profesor</option>
+        <option value="Qantu">Qantu</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddModal()">Cancelar</button>
+      <button class="btn-confirm" onclick="confirmAdd()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── FIREBASE ──────────────────────────────────────────────────
+const FB_CONFIG = {
+  apiKey: "AIzaSyD9v_Ifun4EzkBnGzQtoNWR62m9dK6yyxk",
+  authDomain: "qantu-5470f.firebaseapp.com",
+  projectId: "qantu-5470f",
+  storageBucket: "qantu-5470f.firebasestorage.app",
+  messagingSenderId: "1071668654049",
+  appId: "1:1071668654049:web:ccd9519adc901a69936ca0"
+};
+
+let db = null;
+
+async function initFirebase() {
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getFirestore, doc, setDoc, onSnapshot, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const app = initializeApp(FB_CONFIG);
+    db = getFirestore(app);
+    const docRef = doc(db, 'qantu', 'main');
+
+    // Listen for realtime changes
+    onSnapshot(docRef, (snap) => {
+      if (snap.exists()) {
+        const remote = snap.data();
+        if (!state._ts || (remote._ts && remote._ts > state._ts)) {
+          state = remote;
+          const now = new Date();
+          currentMonth = state.currentMonth ?? now.getMonth();
+          currentYear  = state.currentYear  ?? now.getFullYear();
+          if (!state.students) state.students = [];
+          if (!state.records)  state.records  = {};
+          localStorage.setItem(KEY, JSON.stringify(state));
+          renderList();
+          updateSync('synced');
+        }
+      }
+    }, () => updateSync('offline'));
+
+    // Push local data if Firestore is empty
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) await pushToFirebase();
+    else updateSync('synced');
+  } catch(e) {
+    console.warn('Firebase unavailable:', e);
+    updateSync('offline');
+  }
+}
+
+async function pushToFirebase() {
+  if (!db) return;
+  try {
+    const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    state._ts = Date.now();
+    const docRef = doc(db, 'qantu', 'main');
+    await setDoc(docRef, JSON.parse(JSON.stringify(state)));
+    updateSync('synced');
+  } catch(e) { updateSync('offline'); }
+}
+
+function updateSync(status) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const map = { synced:['⚡ sincronizado','var(--green)'], saving:['↑ guardando…','var(--gold)'], offline:['○ sin conexión','var(--muted)'] };
+  const [txt, col] = map[status] || map.offline;
+  el.textContent = txt; el.style.color = col;
+}
+
+// ── CONSTANTS ──────────────────────────────────────────────────
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MONTHS_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const METHODS = ['Yape','Transferencia','Efectivo'];
+const DESTS = ['Profesor','Qantu'];
+const TARIFAS = [{id:'A',label:'A',sub:'30 min'},{id:'B',label:'B',sub:'45 min'},{id:'C',label:'C',sub:'1 hora'}];
+
+const AVATAR_COLORS = [
+  ['#c9a84c','#2a1f08'],['#7eb8a4','#0a1f1a'],['#c47e6a','#2a1008'],
+  ['#7aa8c4','#08182a'],['#a47eb8','#1a0828'],['#b8a47e','#2a1f08']
+];
+
+// ── DEFAULT STUDENTS ──────────────────────────────────────────
+const DEFAULT_STUDENTS = [
+  // Lunes
+  { id:'s1',  name:'Luca Agramonte',      day:'Lunes',     time:'15:45', tarifa:'A', dest:'Pago a Qantu',          startMonth:2 },
+  { id:'s2',  name:'Amaru Chávez',         day:'Lunes',     time:'16:15', tarifa:'B', dest:'Pago a Qantu',          startMonth:2 },
+  { id:'s3',  name:'Leo & Lucho',          day:'Lunes',     time:'17:00', tarifa:'C', dest:'Pago a Qantu',          startMonth:2 },
+  { id:'s4',  name:'Renzo Jiménez',        day:'Lunes',     time:'18:00', tarifa:'B', dest:'Yape a secretaría',     startMonth:2 },
+  { id:'s5',  name:'Salim Massias',        day:'Lunes',     time:'18:45', tarifa:'B', dest:'Pago a Qantu',          startMonth:2 },
+  // Martes
+  { id:'s6',  name:'Adriano Deza',         day:'Martes',    time:'17:00', tarifa:'A', dest:'Pago a Qantu',          startMonth:2 },
+  { id:'s7',  name:'Gonzalo Pacheco',      day:'Martes',    time:'17:30', tarifa:'A', dest:'Pago a Qantu',          startMonth:2 },
+  { id:'s8',  name:'Clase Grupal',         day:'Martes',    time:'18:00', tarifa:'C', dest:'Pago a Qantu',          startMonth:2 },
+  { id:'s9',  name:'Leonardo Bustamante',  day:'Martes',    time:'19:00', tarifa:'C', dest:'Pago a Qantu',          startMonth:2 },
+  // Miércoles
+  { id:'s10', name:'Ernesto',              day:'Miércoles', time:'15:00', tarifa:'A', dest:'Yape al profesor',      startMonth:2 },
+  { id:'s11', name:'Vincenzo Coronado',    day:'Miércoles', time:'15:30', tarifa:'A', dest:'Yape al profesor',      startMonth:2 },
+  { id:'s12', name:'Héctor Espejo',        day:'Miércoles', time:'16:00', tarifa:'A', dest:'Yape al profesor',      startMonth:2 },
+  { id:'s13', name:'Itzae Moscoso',        day:'Miércoles', time:'16:30', tarifa:'B', dest:'Pago a Qantu',          startMonth:2 },
+  { id:'s14', name:'Benjamín Valencia',    day:'Miércoles', time:'17:15', tarifa:'B', dest:'Pago a Qantu',          startMonth:2 },
+  { id:'s15', name:'Kailash Trosso',       day:'Miércoles', time:'18:00', tarifa:'A', dest:'Pago a Qantu',          startMonth:2 },
+];
+
+// ── STATE ─────────────────────────────────────────────────────
+let state, currentMonth, currentYear, currentStudentId;
+const KEY = 'qantu-control-v4';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) { state = JSON.parse(raw); }
+    else { initDefault(); }
+  } catch(e) { initDefault(); }
+  const now = new Date();
+  currentMonth = state.currentMonth ?? now.getMonth();
+  currentYear  = state.currentYear  ?? now.getFullYear();
+  // Restore title
+  const titleEl = document.getElementById('app-title');
+  if (state.appTitle && titleEl) titleEl.textContent = state.appTitle;
+  // Wire title save
+  if (titleEl) {
+    titleEl.addEventListener('blur', () => { state.appTitle = titleEl.textContent.trim() || 'Escuela Qantu'; save(); });
+    titleEl.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); titleEl.blur(); } });
+  }
+}
+
+function initDefault() {
+  const now = new Date();
+  state = {
+    students: DEFAULT_STUDENTS.map(s => ({...s})),
+    records: {},
+    currentMonth: now.getMonth(),
+    currentYear: now.getFullYear()
+  };
+}
+
+function save() {
+  state.currentMonth = currentMonth;
+  state.currentYear  = currentYear;
+  localStorage.setItem(KEY, JSON.stringify(state));
+  updateSync('saving');
+  pushToFirebase();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function monthKey() { return `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`; }
+function studentRecord(sid) {
+  const mk = monthKey();
+  if (!state.records[sid]) state.records[sid] = {};
+  const s_ref = state.students.find(x=>x.id===sid);
+  const sMonth = s_ref ? (s_ref.startMonth ?? 2) : 2;
+  const [recYear, recMon] = mk.split('-').map(Number);
+  if ((recMon - 1) < sMonth && recYear <= currentYear) return null; // before start
+  if (!state.records[sid][mk]) state.records[sid][mk] = { classes:[false,false,false,false], classDates:['','','',''], amount:'', payDate:'', method:'', notes:'' };
+  return state.records[sid][mk];
+}
+function initials(name) {
+  return name.split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+}
+function avatarColor(sid) {
+  const idx = parseInt(sid.replace(/\D/g,'')) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[idx];
+}
+function fmtTime(t) {
+  if (!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const p = h>=12?'pm':'am'; const hh = h>12?h-12:h===0?12:h;
+  return `${hh}:${String(m).padStart(2,'0')} ${p}`;
+}
+
+// ── RENDER LIST ───────────────────────────────────────────────
+function renderList() {
+  document.getElementById('month-label').textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+  const wrap = document.getElementById('student-list');
+  if (!state.students.length) { wrap.innerHTML = '<div class="empty">Sin alumnos. Toca + para agregar.</div>'; return; }
+
+  // Sort by day then time
+  const dayOrder = {Lunes:0,Martes:1,'Miércoles':2,Jueves:3,Viernes:4,Sábado:5,'Por definir':9};
+  const sorted = [...state.students].sort((a,b) => {
+    const dd = (dayOrder[a.day]??9) - (dayOrder[b.day]??9);
+    if (dd!==0) return dd;
+    return (a.time||'99:99').localeCompare(b.time||'99:99');
+  });
+
+  wrap.innerHTML = '';
+  let lastDay = null;
+  sorted.forEach(s => {
+    const notStarted = currentMonth < (s.startMonth ?? 2);
+    const rec = notStarted ? null : studentRecord(s.id);
+    const done = rec ? rec.classes.filter(Boolean).length : 0;
+    const [bg, fg] = avatarColor(s.id);
+
+    if (s.day !== lastDay) {
+      const dayDiv = document.createElement('div');
+      dayDiv.style.cssText = 'font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);padding:14px 4px 4px;';
+      dayDiv.textContent = s.day;
+      wrap.appendChild(dayDiv);
+      lastDay = s.day;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'student-card' + (notStarted ? ' not-started' : '');
+    card.onclick = () => openDetail(s.id);
+
+    if (notStarted) {
+      card.innerHTML = `
+        <div class="student-row">
+          <div class="avatar" style="background:${bg};color:${fg};opacity:0.4">${initials(s.name)}</div>
+          <div class="student-info">
+            <div class="student-name" style="opacity:0.4">${s.name}</div>
+            <div class="student-meta" style="opacity:0.4">
+              <span class="meta-time">${fmtTime(s.time) || '–'}</span>
+              <span class="meta-sep">·</span>
+              Tarifa ${s.tarifa}
+            </div>
+          </div>
+          <div class="student-right">
+            <span class="payment-badge badge-inactive">No iniciado</span>
+          </div>
+        </div>`;
+      wrap.appendChild(card);
+      return;
+    }
+
+    if (!rec) { return; }
+    const badgeClass = rec.payDate ? 'badge-paid' : 'badge-unpaid';
+    const badgeText  = rec.payDate ? 'Pagado' : 'Pendiente';
+
+    const classCount = s.exception ? (s.customClasses || 4) : 4;
+    const dotsArr = Array.from({length: classCount}, (_,i) => rec.classes[i] || false);
+    const discountLabel = {hermano:'2° hermano', instrumento:'2° instrumento', descuento:'Desc. exc.'}[s.studentType] || '';
+    card.innerHTML = `
+      <div class="student-row">
+        <div class="avatar" style="background:${bg};color:${fg}">${initials(s.name)}</div>
+        <div class="student-info">
+          <div class="student-name">${s.name}${s.rental ? '<span class="rental-badge">🎸 alquiler</span>' : ''}</div>
+          <div class="student-meta">
+            <span class="meta-time">${fmtTime(s.time) || '–'}${s.timeEnd ? ' – '+fmtTime(s.timeEnd) : ''}</span>
+            <span class="meta-sep">·</span>
+            ${s.grupal ? 'Grupal' : s.exception ? 'Libre · '+s.dest : 'Tarifa '+s.tarifa+(discountLabel ? ' · '+discountLabel : '')+' · '+s.dest}
+          </div>
+        </div>
+        <div class="student-right">
+          <div class="classes-dots">
+            ${dotsArr.map(d=>`<div class="dot${d?' done':''}"></div>`).join('')}
+          </div>
+          <span class="payment-badge ${badgeClass}">${badgeText}</span>
+        </div>
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+
+// ── DETAIL ────────────────────────────────────────────────────
+function openDetail(sid) {
+  currentStudentId = sid;
+  const s   = state.students.find(x=>x.id===sid);
+  const rec = studentRecord(sid);
+  const [bg,fg] = avatarColor(sid);
+
+  document.getElementById('d-avatar').style.cssText = `background:${bg};color:${fg}`;
+  document.getElementById('d-avatar').textContent = initials(s.name);
+  const dName = document.getElementById('d-name');
+  dName.textContent = s.name;
+  dName.oninput = null;
+  dName.onblur = null;
+  dName.oninput = () => {
+    const updated = dName.innerText.trim();
+    if (updated) { s.name = updated; save(); renderList(); }
+  };
+  dName.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); dName.blur(); } };
+
+  // Tipo de alumno
+  const stypeRow = document.getElementById('d-stype');
+  stypeRow.innerHTML = '';
+  [{id:'regular',label:'Regular'},{id:'hermano',label:'2° hermano'},{id:'instrumento',label:'2° instrumento'},{id:'descuento',label:'Descuento exc.'}].forEach(t => {
+    const c = document.createElement('button');
+    c.className = 'stype-chip' + ((s.studentType||'regular') === t.id ? ' active' : '');
+    c.textContent = t.label;
+    c.onclick = () => { s.studentType=t.id; save(); stypeRow.querySelectorAll('.stype-chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); };
+    stypeRow.appendChild(c);
+  });
+
+  // Rental & exception toggles
+  document.getElementById('d-rental-toggle').className    = 'toggle-switch ' + (s.rental    ? 'on' : 'off');
+  document.getElementById('d-grupal-toggle').className    = 'toggle-switch ' + (s.grupal    ? 'on' : 'off');
+  document.getElementById('d-exception-toggle').className = 'toggle-switch ' + (s.exception ? 'on' : 'off');
+  document.getElementById('d-exception-box').style.display = (s.exception || s.grupal) ? 'block' : 'none';
+  document.getElementById('d-fixed-amount').value    = s.fixedAmount   || '';
+  document.getElementById('d-custom-classes').value  = s.customClasses || 4;
+  document.getElementById('d-tarifa-section').style.display = (s.exception || s.grupal) ? 'none' : '';
+  applyGrupalUI(!!s.grupal);
+
+  // Schedule fields
+  const daySelect = document.getElementById('d-day');
+  daySelect.value = s.day || 'Lunes';
+  document.getElementById('d-time-start').value = s.time || '';
+  document.getElementById('d-time-end').value   = s.timeEnd || '';
+
+  // Start month badge
+  const badge = document.getElementById('d-start-badge');
+  function renderStartBadge() {
+    const sm = s.startMonth ?? 2;
+    badge.textContent = '↗ desde ' + MONTHS_SHORT[sm];
+  }
+  renderStartBadge();
+  badge.onclick = () => {
+    // Replace badge with inline select
+    const sel = document.createElement('select');
+    sel.className = 'start-select';
+    for (let i=2; i<=11; i++) {
+      const opt = document.createElement('option');
+      opt.value = i; opt.textContent = MONTHS[i];
+      if (i === (s.startMonth ?? 2)) opt.selected = true;
+      sel.appendChild(opt);
+    }
+    badge.replaceWith(sel);
+    sel.focus();
+    sel.onchange = () => {
+      s.startMonth = parseInt(sel.value);
+      save(); renderList();
+      sel.replaceWith(badge);
+      renderStartBadge();
+    };
+    sel.onblur = () => { sel.replaceWith(badge); };
+  };
+  document.getElementById('d-sub').textContent  = `${s.day}${s.time?' · '+fmtTime(s.time):''} · Tarifa ${s.tarifa}`;
+
+  // Classes
+  const cg = document.getElementById('d-classes');
+  cg.innerHTML = '';
+  const numClasses = s.exception ? (s.customClasses || 4) : 4;
+  while (rec.classes.length < numClasses) rec.classes.push(false);
+  if (!rec.classDates) rec.classDates = [];
+  while (rec.classDates.length < numClasses) rec.classDates.push('');
+  rec.classes.slice(0, numClasses).forEach((done, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'class-cell' + (done ? ' done' : '');
+    cell.innerHTML = `
+      <div class="class-num">Clase ${i+1}</div>
+      <div class="class-check" data-idx="${i}">${done?'✓':'·'}</div>
+      <div class="class-date-wrap">
+        <input class="class-date-input" type="date" value="${rec.classDates[i]||''}" placeholder="fecha" data-idx="${i}">
+      </div>`;
+    cell.querySelector('.class-check').addEventListener('click', () => toggleClass(i));
+    cell.querySelector('.class-date-input').addEventListener('change', e => saveClassDate(i, e.target.value));
+    cg.appendChild(cell);
+  });
+
+  // Tarifa
+  const tr = document.getElementById('d-tarifa');
+  tr.innerHTML = '';
+  TARIFAS.forEach(t => {
+    const p = document.createElement('button');
+    p.className = 'tarifa-pill' + (s.tarifa===t.id?' active':'');
+    p.innerHTML = `${t.label}<span class="tarifa-sub">${t.sub}</span>`;
+    p.onclick = () => { s.tarifa=t.id; save(); renderList(); document.getElementById('d-sub').textContent=`${s.day}${s.time?' · '+fmtTime(s.time):''} · Tarifa ${s.tarifa}`; tr.querySelectorAll('.tarifa-pill').forEach(x=>x.classList.remove('active')); p.classList.add('active'); };
+    tr.appendChild(p);
+  });
+
+  // Amount & date
+  document.getElementById('d-amount').value  = rec.amount  || '';
+  document.getElementById('d-paydate').value = rec.payDate || '';
+
+  // Methods
+  const mr = document.getElementById('d-methods');
+  mr.innerHTML = '';
+  METHODS.forEach(m => {
+    const c = document.createElement('button');
+    c.className = 'method-chip' + (rec.method===m?' active':'');
+    c.textContent = m;
+    c.onclick = () => { rec.method=m; save(); mr.querySelectorAll('.method-chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); };
+    mr.appendChild(c);
+  });
+
+  // Dest
+  const dr = document.getElementById('d-dest');
+  dr.innerHTML = '';
+  DESTS.forEach(d => {
+    const c = document.createElement('button');
+    c.className = 'method-chip' + (s.dest===d?' active':'');
+    c.textContent = d;
+    c.onclick = () => { s.dest=d; save(); renderList(); dr.querySelectorAll('.method-chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); };
+    dr.appendChild(c);
+  });
+
+  // Notes
+  document.getElementById('d-notes').value = rec.notes || '';
+
+  // If month is before student started, show notice
+  const recCheck = studentRecord(sid);
+  const sectionsEl = document.querySelectorAll('.detail-panel .section');
+  if (!recCheck) {
+    sectionsEl.forEach((s,i) => { if(i>0) s.style.opacity='0.3'; s.style.pointerEvents=i>0?'none':''; });
+    document.getElementById('d-sub').textContent += ' · ⚠ mes anterior al inicio';
+  } else {
+    sectionsEl.forEach(s => { s.style.opacity=''; s.style.pointerEvents=''; });
+  }
+  document.getElementById('detail-overlay').classList.add('open');
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+  currentStudentId = null;
+  renderList();
+}
+
+function toggleClass(i) {
+  const rec = studentRecord(currentStudentId);
+  if (!rec.classDates) rec.classDates = ['','','',''];
+  rec.classes[i] = !rec.classes[i];
+  if (!rec.classes[i]) rec.classDates[i] = ''; // clear date when unmarking
+  save();
+  refreshClassCell(rec, i);
+}
+
+function saveClassDate(i, val) {
+  const rec = studentRecord(currentStudentId);
+  if (!rec.classDates) rec.classDates = ['','','',''];
+  rec.classDates[i] = val;
+  save();
+  if (rec.classes[i]) refreshClassCell(rec, i);
+}
+
+function refreshClassCell(rec, i) {
+  const cg = document.getElementById('d-classes');
+  const cell = cg.querySelectorAll('.class-cell')[i];
+  if (!cell) return;
+  cell.className = 'class-cell' + (rec.classes[i] ? ' done' : '');
+  cell.querySelector('.class-check').textContent = rec.classes[i]?'✓':'·';
+  cell.querySelector('.class-date-input').value = rec.classDates[i]||'';
+}
+
+function saveDetailField(field, value) {
+  const rec = studentRecord(currentStudentId);
+  rec[field] = value;
+  save();
+}
+
+function toggleRental() {
+  const s = state.students.find(x=>x.id===currentStudentId); if(!s) return;
+  s.rental = !s.rental; save(); renderList();
+  document.getElementById('d-rental-toggle').className = 'toggle-switch ' + (s.rental ? 'on' : 'off');
+}
+
+function applyGrupalUI(isGrupal) {
+  document.getElementById('d-stype-section').classList.toggle('section-disabled', isGrupal);
+  document.getElementById('d-payment-section').classList.toggle('section-disabled', isGrupal);
+  document.getElementById('d-dest-section').classList.toggle('section-disabled', isGrupal);
+  // Disable rental toggle when grupal is on
+  const rentalToggle = document.getElementById('d-rental-toggle');
+  if (isGrupal) {
+    rentalToggle.classList.add('section-disabled');
+    rentalToggle.style.opacity = '0.3';
+    rentalToggle.style.pointerEvents = 'none';
+  } else {
+    rentalToggle.classList.remove('section-disabled');
+    rentalToggle.style.opacity = '';
+    rentalToggle.style.pointerEvents = '';
+  }
+}
+
+function toggleGrupal() {
+  const s = state.students.find(x=>x.id===currentStudentId); if(!s) return;
+  s.grupal = !s.grupal;
+  if (s.grupal) s.exception = false;
+  save(); renderList();
+  document.getElementById('d-grupal-toggle').className    = 'toggle-switch ' + (s.grupal ? 'on' : 'off');
+  document.getElementById('d-exception-toggle').className = 'toggle-switch off';
+  document.getElementById('d-exception-box').style.display = s.grupal ? 'block' : 'none';
+  document.getElementById('d-tarifa-section').style.display = s.grupal ? 'none' : '';
+  applyGrupalUI(s.grupal);
+}
+
+function toggleException() {
+  const s = state.students.find(x=>x.id===currentStudentId); if(!s) return;
+  s.exception = !s.exception;
+  if (s.exception) s.grupal = false;
+  save(); renderList();
+  document.getElementById('d-exception-toggle').className = 'toggle-switch ' + (s.exception ? 'on' : 'off');
+  document.getElementById('d-grupal-toggle').className    = 'toggle-switch off';
+  document.getElementById('d-exception-box').style.display = s.exception ? 'block' : 'none';
+  document.getElementById('d-tarifa-section').style.display = s.exception ? 'none' : '';
+}
+
+function saveStudentField(field, value) {
+  const s = state.students.find(x => x.id === currentStudentId);
+  if (!s) return;
+  s[field] = value;
+  // Update subtitle
+  document.getElementById('d-sub').textContent = `${s.day}${s.time?' · '+fmtTime(s.time):''} · Tarifa ${s.tarifa}`;
+  save();
+  renderList();
+}
+
+function deleteStudent() {
+  if (!confirm('¿Eliminar este alumno?')) return;
+  state.students = state.students.filter(s=>s.id!==currentStudentId);
+  save(); closeDetail(); renderList();
+  showToast('Alumno eliminado');
+}
+
+// ── ADD STUDENT ───────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('new-name').value = '';
+  document.getElementById('add-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('new-name').focus(),200);
+}
+function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
+function confirmAdd() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { document.getElementById('new-name').focus(); return; }
+  const id = 's' + Date.now();
+  state.students.push({
+    id, name,
+    day:    document.getElementById('new-day').value,
+    time:   document.getElementById('new-time').value,
+    tarifa: document.getElementById('new-tarifa').value,
+    dest:   document.getElementById('new-dest').value,
+  });
+  save(); renderList(); closeAddModal();
+  showToast(`${name} agregado`);
+}
+
+// ── MONTH NAV ────────────────────────────────────────────────
+function changeMonth(dir) {
+  let nm = currentMonth + dir;
+  let ny = currentYear;
+  if (nm > 11) { nm=0; ny++; }
+  if (nm <  0) { nm=11; ny--; }
+  // Limit: March(2) to December(11) of any year
+  if (nm < 2) { showToast('Las clases van de marzo a diciembre'); return; }
+  currentMonth = nm; currentYear = ny;
+  save(); renderList();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ── CLOSE MODAL ON OVERLAY ────────────────────────────────────
+document.getElementById('add-modal').addEventListener('click', e => {
+  if (e.target===e.currentTarget) closeAddModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') { closeDetail(); closeAddModal(); }
+});
+
+// ── INIT ──────────────────────────────────────────────────────
+loadState();
+renderList();
+initFirebase();
+
+// ── PWA SETUP ─────────────────────────────────────────────────
+(function() {
+  // Inline manifest
+  const manifest = {
+    name: "Control Qantu",
+    short_name: "Qantu",
+    description: "Control de clases y pagos - Escuela Qantu",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#0e0c09",
+    theme_color: "#0e0c09",
+    orientation: "portrait",
+    icons: [
+      {
+        src: "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#0e0c09"/><text x="256" y="340" font-size="280" text-anchor="middle" fill="#c9a84c" font-family="Georgia,serif">Q</text></svg>`),
+        sizes: "512x512",
+        type: "image/svg+xml",
+        purpose: "any maskable"
+      }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+
+  // Service worker for offline use
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+const CACHE = 'qantu-v1';
+self.addEventListener('install', e => {
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html'])));
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(clients.claim());
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+      const clone = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return res;
+    }))
+  );
+});`;
+    const swBlob = new Blob([swCode], {type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+      .catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
