@@ -448,7 +448,7 @@ html, body { height:100%; background:var(--bg); color:var(--cream); font-family:
   <div class="section" id="d-matricula-section">
     <div class="section-title">Matrícula anual</div>
     <div class="toggle-row">
-      <div><div class="toggle-label">Matrícula 2025</div><div class="toggle-sub" id="d-matricula-status">Sin registrar</div></div>
+      <div><div class="toggle-label">Matrícula 2026</div><div class="toggle-sub" id="d-matricula-status">Sin registrar</div></div>
       <button class="toggle-switch off" id="d-matricula-btn" onclick="toggleMatricula()"></button>
     </div>
   </div>
@@ -857,9 +857,9 @@ function renderList() {
       <div class="student-row">
         <div class="avatar" style="background:${bg};color:${fg}">${initials(s.name)}</div>
         <div class="student-info">
-          <div class="student-name">${s.name}${s.rental ? '<span class="rental-badge">🎸 alquiler</span>' : ''}</div>
+          <div class="student-name" style="${s.grupal ? 'color:#c8c4b8' : ''}">${s.name}${s.rental ? '<span class="rental-badge">🎸 alquiler</span>' : ''}</div>
           <div class="student-meta">
-            <span class="meta-time">${fmtTime(s.time) || '–'}${s.timeEnd ? ' – '+fmtTime(s.timeEnd) : ''}</span>
+            <span class="meta-time" style="${s.grupal ? 'color:#b8a87a' : ''}">${fmtTime(s.time) || '–'}${s.timeEnd ? ' – '+fmtTime(s.timeEnd) : ''}</span>
             <span class="meta-sep">·</span>
             ${s.grupal ? 'Grupal' : s.exception ? 'Libre · '+s.dest : 'Tarifa '+s.tarifa+(discountLabel ? ' · '+discountLabel : '')+' · '+s.dest}
           </div>
@@ -868,7 +868,7 @@ function renderList() {
           <div class="classes-dots">
             ${dotsArr.map(d=>`<div class="dot${d?' done':''}"></div>`).join('')}
           </div>
-          <span class="payment-badge ${badgeClass}">${badgeText}</span>
+          ${s.grupal ? '' : `<span class="payment-badge ${badgeClass}">${badgeText}</span>`}
         </div>
       </div>`;
     wrap.appendChild(card);
@@ -1087,8 +1087,9 @@ function toggleRental() {
 
 function applyGrupalUI(isGrupal) {
   document.getElementById('d-stype-section').classList.toggle('section-disabled', isGrupal);
-  document.getElementById('d-payment-section').classList.toggle('section-disabled', isGrupal);
-  document.getElementById('d-dest-section').classList.toggle('section-disabled', isGrupal);
+  // Hide payment and dest entirely for grupal
+  document.getElementById('d-payment-section').style.display = isGrupal ? 'none' : '';
+  document.getElementById('d-dest-section').style.display    = isGrupal ? 'none' : '';
   // Disable rental toggle when grupal is on
   const rentalToggle = document.getElementById('d-rental-toggle');
   if (isGrupal) {
@@ -1247,8 +1248,13 @@ function renderRecup() {
     item.innerHTML = `
       <button class="recup-remove" onclick="removeRecup(${i})">✕</button>
       <div class="recup-item-name">${r.studentName}${r.excepcional ? '<span class="recup-badge-exc">Excepcional</span>' : ''}</div>
-      <div class="recup-item-meta">${MONTHS[r.mes]} · Clase ${r.clase||'–'} · ${r.fecha ? new Date(r.fecha+'T12:00:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric',month:'short'}) : '<span style="color:var(--red);font-weight:600">No programada</span>'}${r.excDetail ? ' · '+r.excDetail : ''}</div>
+      <div class="recup-item-meta">${MONTHS[r.mes]} · Clase ${r.clase||'–'}</div>
       <div class="recup-item-motivo">${r.motivo}</div>
+      <div style="margin-top:8px">
+        <label style="font-size:10px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">Fecha de recuperación</label>
+        <input type="date" class="form-input" style="font-size:12px;padding:7px 10px" value="${r.fecha||''}" onchange="updateRecupFecha(${i}, this.value)">
+        ${!r.fecha ? '<div style="font-size:10px;color:var(--red);margin-top:3px;font-weight:600">No programada</div>' : ''}
+      </div>
       ${!r.done
         ? `<button class="recup-done-btn" onclick="markRecupDone(${i})">✓ Recuperación realizada</button>`
         : '<div style="font-size:11px;color:var(--green);margin-top:6px">✓ Realizada</div>'}`;
@@ -1295,6 +1301,7 @@ function confirmRecup() {
   save(); renderRecup(); closeRecupModal(); showToast('Recuperación agregada');
 }
 function markRecupDone(i) { state.recuperaciones[i].done = true; save(); renderRecup(); }
+function updateRecupFecha(i, val) { state.recuperaciones[i].fecha = val; save(); renderRecup(); }
 function removeRecup(i) { state.recuperaciones.splice(i, 1); save(); renderRecup(); }
 
 // ── INIT ──────────────────────────────────────────────────────
