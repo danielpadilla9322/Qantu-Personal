@@ -1386,7 +1386,7 @@ function confirmRecup() {
 }
 function markRecupDone(i) { state.recuperaciones[i].done = true; save(); renderRecup(); }
 function updateRecupFecha(i, val) { state.recuperaciones[i].fecha = val; save(); renderRecup(); }
-function removeRecup(i) { state.recuperaciones.splice(i, 1); save(); renderRecup(); }
+function removeRecup(i) { const wasDone=state.recuperaciones[i].done; state.recuperaciones.splice(i,1); save(); renderRecup(wasDone); }
 
 // ── EXPORT SCHEDULE IMAGE ─────────────────────────────────────
 function exportScheduleImage() {
