@@ -299,33 +299,6 @@ html, body { height:100%; background:var(--bg); color:var(--cream); font-family:
 .recup-count { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:var(--red); color:white; font-size:9px; font-weight:700; margin-left:4px; vertical-align:middle; }
 .student-card.blocked { border-style:dashed; border-color:rgba(122,168,196,0.3); opacity:0.55; }
 .badge-blocked { background:rgba(122,168,196,0.15); color:var(--blue); border:1px solid rgba(122,168,196,0.3); }
-.resumen-overlay{position:fixed;inset:0;z-index:180;background:rgba(0,0,0,0.65);opacity:0;pointer-events:none;transition:opacity 0.25s}
-.resumen-overlay.open{opacity:1;pointer-events:all}
-.resumen-box{position:fixed;bottom:0;left:0;right:0;z-index:190;background:var(--bg);border-top:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px 18px 40px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1)}
-.resumen-overlay.open .resumen-box{transform:translateY(0)}
-.resumen-title{font-size:16px;font-weight:700;color:var(--cream);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-.resumen-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.resumen-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
-.resumen-card.highlight{border-color:var(--gold);background:var(--gold-dim)}
-.resumen-val{font-size:24px;font-weight:700;color:var(--cream);line-height:1}
-.resumen-card.highlight .resumen-val{color:var(--gold-light)}
-.resumen-lbl{font-size:10px;color:var(--muted);letter-spacing:0.07em;text-transform:uppercase;margin-top:4px}
-.resumen-list{max-height:200px;overflow-y:auto}
-.resumen-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
-.resumen-row:last-child{border-bottom:none}
-.resumen-row-name{color:var(--cream)}
-.resumen-row-amount{color:var(--gold);font-weight:600}
-.resumen-row-pending{color:var(--red);font-size:11px}
-.contact-row{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
-.wa-btn{padding:7px 12px;border-radius:20px;border:none;background:rgba(37,211,102,0.15);color:#25d366;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
-.wa-btn:active{background:rgba(37,211,102,0.25)}
-.historial-toggle{font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;margin-top:10px;user-select:none}
-.historial-list{margin-top:6px;display:none}
-.historial-list.open{display:block}
-.historial-item{font-size:11px;color:var(--muted);padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px}
-.historial-item:last-child{border-bottom:none}
-.historial-date{color:var(--border);flex-shrink:0}
-.historial-change{color:var(--cream);opacity:0.7}
 
 /* ── RENTAL BADGE ── */
 .rental-badge {
@@ -388,7 +361,7 @@ html, body { height:100%; background:var(--bg); color:var(--cream); font-family:
 
 <div class="month-bar">
   <button class="month-nav" onclick="changeMonth(-1)">‹</button>
-  <span class="month-label" id="month-label" onclick="openResumen()" style="cursor:pointer" title="Ver resumen del mes"></span>
+  <span class="month-label" id="month-label"></span>
   <button class="month-nav" onclick="changeMonth(1)">›</button>
 </div>
 
@@ -554,19 +527,6 @@ html, body { height:100%; background:var(--bg); color:var(--cream); font-family:
     <div class="section-title">Notas</div>
     <textarea class="notes-input" id="d-notes" placeholder="Observaciones del mes..." oninput="saveDetailField('notes', this.value)"></textarea>
   </div>
-  <div class="section">
-    <div class="section-title">Contacto</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Apoderado</label><input class="form-input" id="d-guardian" type="text" placeholder="Nombre" oninput="saveStudentField('guardian', this.value)"></div>
-      <div class="form-group"><label class="form-label">WhatsApp</label><input class="form-input" id="d-phone" type="tel" placeholder="+51 999..." oninput="saveStudentField('phone', this.value)"></div>
-    </div>
-    <div class="contact-row">
-      <button class="wa-btn" onclick="sendWAReminder()">📱 Clase</button>
-      <button class="wa-btn" onclick="sendWARecup()">🔄 Recuperación</button>
-    </div>
-    <div class="historial-toggle" onclick="toggleHistorial()"><span id="historial-arrow">▶</span>&nbsp;Historial de horario</div>
-    <div class="historial-list" id="historial-list"></div>
-  </div>
 
   <!-- Danger -->
   <div class="section">
@@ -575,14 +535,6 @@ html, body { height:100%; background:var(--bg); color:var(--cream); font-family:
   <div class="detail-bottom"></div>
 </div>
 
-<!-- RESUMEN MODAL -->
-<div class="resumen-overlay" id="resumen-overlay" onclick="closeResumen()">
-  <div class="resumen-box" onclick="event.stopPropagation()">
-    <div class="resumen-title"><span id="resumen-month-label"></span><button class="detail-close" onclick="closeResumen()">✕</button></div>
-    <div class="resumen-grid" id="resumen-grid"></div>
-    <div class="resumen-list" id="resumen-list"></div>
-  </div>
-</div>
 <!-- RECUPERACION MODAL -->
 <div class="modal-overlay" id="recup-modal" style="z-index:250">
   <div class="modal-box">
@@ -913,7 +865,7 @@ function renderList() {
         <div class="student-info">
           <div class="student-name" style="${s.grupal ? 'color:#c8c4b8' : ''}">${s.name}${s.rental ? '<span class="rental-badge">🎸 alquiler</span>' : ''}</div>
           <div class="student-meta">
-            <span class="meta-time" style="${s.grupal ? 'color:#b8a87a' : ''}">${fmtTime(s.time) || '–'}${s.timeEnd ? ' – '+fmtTime(s.timeEnd) : ''}</span>
+            <span class="meta-time" style="${s.grupal ? 'color:#b8a87a' : ''}">${(()=>{const t=fmtTime(s.time)||'–';if(!s.time)return t;if(s.timeEnd)return t+' – '+fmtTime(s.timeEnd);const[h,m]=s.time.split(':').map(Number),dur=s.tarifa==='A'?30:s.tarifa==='B'?45:60,tot=h*60+m+dur,eh=Math.floor(tot/60),em=tot%60,ep=eh>=12?'pm':'am',ehh=eh>12?eh-12:eh===0?12:eh;return t+' – '+ehh+':'+String(em).padStart(2,'0')+' '+ep;})()}</span>
             <span class="meta-sep">·</span>
             ${s.grupal ? 'Grupal' : s.exception ? 'Libre · '+s.dest : 'Tarifa '+s.tarifa+(discountLabel ? ' · '+discountLabel : '')+' · '+s.dest}
           </div>
@@ -985,22 +937,6 @@ function openDetail(sid) {
   document.getElementById('d-tarifa-section').style.display = (s.exception || s.grupal) ? 'none' : '';
   applyGrupalUI(!!s.grupal);
 
-  // Contact
-  document.getElementById('d-guardian').value = s.guardian || '';
-  document.getElementById('d-phone').value = s.phone || '';
-  const hlist = document.getElementById('historial-list');
-  hlist.innerHTML = ''; hlist.classList.remove('open');
-  document.getElementById('historial-arrow').textContent = '▶';
-  const hist = s.scheduleHistory || [];
-  if (!hist.length) {
-    hlist.innerHTML = '<div class="historial-item"><span class="historial-change">Sin cambios registrados</span></div>';
-  } else {
-    [...hist].reverse().forEach(h => {
-      const item = document.createElement('div'); item.className = 'historial-item';
-      item.innerHTML = `<span class="historial-date">${h.date}</span><span class="historial-change">${h.from} → ${h.to}</span>`;
-      hlist.appendChild(item);
-    });
-  }
   // Schedule fields
   const daySelect = document.getElementById('d-day');
   daySelect.value = s.day || 'Lunes';
@@ -1199,21 +1135,11 @@ function toggleException() {
 function saveStudentField(field, value) {
   const s = state.students.find(x => x.id === currentStudentId);
   if (!s) return;
-  if (['day','time','timeEnd'].includes(field)) {
-    const oldVal = field === 'day' ? s.day : fmtTime(s[field]);
-    const newVal = field === 'day' ? value : fmtTime(value);
-    if (oldVal !== newVal && newVal) {
-      if (!s.scheduleHistory) s.scheduleHistory = [];
-      s.scheduleHistory.push({
-        date: new Date().toLocaleDateString('es-PE', {day:'numeric', month:'short', year:'numeric'}),
-        from: field + ': ' + (oldVal || '–'),
-        to:   field + ': ' + newVal
-      });
-    }
-  }
   s[field] = value;
-  document.getElementById('d-sub').textContent = `${s.day}${s.time ? ' · ' + fmtTime(s.time) : ''} · Tarifa ${s.tarifa}`;
-  save(); renderList();
+  // Update subtitle
+  document.getElementById('d-sub').textContent = `${s.day}${s.time?' · '+fmtTime(s.time):''} · Tarifa ${s.tarifa}`;
+  save();
+  renderList();
 }
 
 function deleteStudent() {
@@ -1304,7 +1230,7 @@ function saveMonthField(field, value) {
 let recupExc = false;
 
 function openRecup() {
-  renderRecup();
+  renderRecup(false);
   document.getElementById('recup-overlay').classList.add('open');
   document.getElementById('recup-panel').classList.add('open');
 }
@@ -1312,36 +1238,76 @@ function closeRecup() {
   document.getElementById('recup-overlay').classList.remove('open');
   document.getElementById('recup-panel').classList.remove('open');
 }
-function renderRecup() {
+function renderRecup(showArchive) {
   if (!state.recuperaciones) state.recuperaciones = [];
+  const pending = state.recuperaciones.filter(r => !r.done);
+  const done    = state.recuperaciones.filter(r =>  r.done);
   const body = document.getElementById('recup-body');
   body.innerHTML = '';
-  const pending = state.recuperaciones.filter(r=>!r.done).length;
-  document.getElementById('recup-btn').innerHTML = pending > 0 ? `📓<span class="recup-count">${pending}</span>` : '📓';
-  if (!state.recuperaciones.length) {
-    body.innerHTML = '<div class="empty">Sin recuperaciones pendientes</div>'; return;
+  document.getElementById('recup-btn').innerHTML = pending.length > 0
+    ? '\u{1F4D3}<span class="recup-count">'+pending.length+'</span>' : '\u{1F4D3}';
+  // Tabs
+  const aS = 'flex:1;padding:7px;border-radius:8px;border:1px solid var(--gold);background:var(--gold-dim);color:var(--gold);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer';
+  const iS = 'flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer';
+  const tabs = document.createElement('div');
+  tabs.style.cssText = 'display:flex;gap:8px;margin-bottom:12px';
+  const btn1 = document.createElement('button'); btn1.style.cssText = !showArchive ? aS : iS;
+  btn1.textContent = 'Pendientes (' + pending.length + ')'; btn1.onclick = () => renderRecup(false);
+  const btn2 = document.createElement('button'); btn2.style.cssText = showArchive ? aS : iS;
+  btn2.textContent = 'Realizadas (' + done.length + ')';   btn2.onclick = () => renderRecup(true);
+  tabs.appendChild(btn1); tabs.appendChild(btn2); body.appendChild(tabs);
+  const list = showArchive ? done : pending;
+  if (!list.length) {
+    const e = document.createElement('div'); e.className = 'empty';
+    e.textContent = showArchive ? 'Sin recuperaciones realizadas' : 'Sin recuperaciones pendientes';
+    body.appendChild(e); return;
   }
-  state.recuperaciones.forEach((r, i) => {
-    const item = document.createElement('div');
-    item.className = 'recup-item' + (r.excepcional ? ' excepcional' : '');
-    item.style.opacity = r.done ? '0.5' : '1';
+  list.forEach(r => {
+    const i = state.recuperaciones.indexOf(r);
     const isScheduled = !!r.fecha;
-    item.className = 'recup-item' + (r.excepcional?' excepcional':'') + (isScheduled?' scheduled':'');
-    item.innerHTML = `
-      <button class="recup-remove" onclick="removeRecup(${i})">✕</button>
-      <div class="recup-item-name">
-        ${r.studentName}
-        ${r.excepcional ? '<span class="recup-badge-exc">Exc.</span>' : ''}
-        ${isScheduled ? '<span class="recup-scheduled-badge">● Agendada</span>' : ''}
-      </div>
-      <div class="recup-item-meta">${MONTHS[r.mes]} · Clase ${r.clase||'–'} · ${r.motivo}</div>
-      <div class="recup-fecha-row">
-        <input type="datetime-local" class="recup-fecha-input" value="${r.fecha||''}" onchange="updateRecupFecha(${i}, this.value)" placeholder="Fecha y hora">
-        ${!r.fecha ? '<span style="font-size:10px;color:var(--red);font-weight:600;white-space:nowrap">No programada</span>' : ''}
-      </div>
-      ${!r.done
-        ? `<button class="recup-done-btn" onclick="markRecupDone(${i})">✓ Realizada</button>`
-        : '<div style="font-size:10px;color:var(--green);margin-top:4px">✓ Realizada</div>'}`;
+    const item = document.createElement('div');
+    item.className = 'recup-item' + (r.excepcional ? ' excepcional' : '') + (isScheduled ? ' scheduled' : '');
+    item.style.opacity = showArchive ? '0.65' : '1';
+    // Remove button
+    const rmBtn = document.createElement('button');
+    rmBtn.className = 'recup-remove'; rmBtn.textContent = '✕';
+    rmBtn.onclick = () => removeRecup(i);
+    item.appendChild(rmBtn);
+    // Name
+    const nameDiv = document.createElement('div'); nameDiv.className = 'recup-item-name';
+    nameDiv.textContent = r.studentName;
+    if (r.excepcional) { const b=document.createElement('span'); b.className='recup-badge-exc'; b.textContent='Exc.'; nameDiv.appendChild(b); }
+    if (isScheduled)   { const b=document.createElement('span'); b.className='recup-scheduled-badge'; b.textContent='● Agendada'; nameDiv.appendChild(b); }
+    item.appendChild(nameDiv);
+    // Meta
+    const metaDiv = document.createElement('div'); metaDiv.className = 'recup-item-meta';
+    metaDiv.textContent = MONTHS[r.mes] + ' · Clase ' + (r.clase || '–');
+    item.appendChild(metaDiv);
+    // Fecha input
+    const fechaRow = document.createElement('div'); fechaRow.className = 'recup-fecha-row';
+    const fechaInp = document.createElement('input'); fechaInp.type='datetime-local'; fechaInp.className='recup-fecha-input';
+    fechaInp.value = r.fecha || ''; fechaInp.placeholder = 'Fecha y hora';
+    fechaInp.addEventListener('change', e => updateRecupFecha(i, e.target.value));
+    fechaRow.appendChild(fechaInp);
+    if (!r.fecha) { const s=document.createElement('span'); s.style.cssText='font-size:10px;color:var(--red);font-weight:600;white-space:nowrap'; s.textContent='No programada'; fechaRow.appendChild(s); }
+    item.appendChild(fechaRow);
+    // Motivo editable
+    const motivoWrap = document.createElement('div'); motivoWrap.style.marginTop='5px';
+    const motivoInp = document.createElement('input'); motivoInp.type='text'; motivoInp.className='recup-fecha-input';
+    motivoInp.style.width='100%'; motivoInp.value=r.motivo||''; motivoInp.placeholder='Motivo...';
+    motivoInp.addEventListener('change', e => { state.recuperaciones[i].motivo=e.target.value; save(); });
+    motivoWrap.appendChild(motivoInp); item.appendChild(motivoWrap);
+    // Action button
+    const actionBtn = document.createElement('button'); actionBtn.className='recup-done-btn';
+    if (!showArchive) {
+      actionBtn.textContent = '✓ Realizada';
+      actionBtn.onclick = () => markRecupDone(i);
+    } else {
+      actionBtn.style.cssText='border-color:var(--muted);background:transparent;color:var(--muted)';
+      actionBtn.textContent = '↩ Mover a pendientes';
+      actionBtn.onclick = () => unmarkRecupDone(i);
+    }
+    item.appendChild(actionBtn);
     body.appendChild(item);
   });
 }
@@ -1382,11 +1348,12 @@ function confirmRecup() {
     excDetail: document.getElementById('rm-exc-detail').value.trim(),
     done: false, created: Date.now()
   });
-  save(); renderRecup(); closeRecupModal(); showToast('Recuperación agregada');
+  save(); renderRecup(false); closeRecupModal(); showToast('Recuperación agregada');
 }
-function markRecupDone(i) { state.recuperaciones[i].done = true; save(); renderRecup(); }
-function updateRecupFecha(i, val) { state.recuperaciones[i].fecha = val; save(); renderRecup(); }
-function removeRecup(i) { const wasDone=state.recuperaciones[i].done; state.recuperaciones.splice(i,1); save(); renderRecup(wasDone); }
+function markRecupDone(i)   { state.recuperaciones[i].done = true;  save(); renderRecup(false); }
+function unmarkRecupDone(i) { state.recuperaciones[i].done = false; save(); renderRecup(true);  }
+function updateRecupFecha(i, val) { state.recuperaciones[i].fecha = val; save(); renderRecup(!!state.recuperaciones[i].done); }
+function removeRecup(i) { state.recuperaciones.splice(i, 1); save(); renderRecup(); }
 
 // ── EXPORT SCHEDULE IMAGE ─────────────────────────────────────
 function exportScheduleImage() {
@@ -1527,61 +1494,6 @@ function exportScheduleImage() {
     URL.revokeObjectURL(url);
     showToast('Horario exportado ✓');
   }, 'image/png');
-}
-
-// ── RESUMEN ───────────────────────────────────────────────────
-function openResumen() {
-  const mk = monthKey(); let paid=0, pending=0, total=0, rows=[];
-  state.students.forEach(s => {
-    if (s.grupal) return;
-    const rec = state.records[s.id] && state.records[s.id][mk];
-    if (!rec || rec.blocked) return;
-    if (rec.payDate) {
-      paid++; const amt = parseFloat(rec.amount) || 0; total += amt;
-      rows.push({name: s.name, amount: amt, paid: true});
-    } else { pending++; rows.push({name: s.name, amount: null, paid: false}); }
-  });
-  document.getElementById('resumen-month-label').textContent = MONTHS[currentMonth] + ' ' + currentYear;
-  document.getElementById('resumen-grid').innerHTML = `
-    <div class="resumen-card highlight"><div class="resumen-val">S/. ${total.toFixed(0)}</div><div class="resumen-lbl">Total recaudado</div></div>
-    <div class="resumen-card"><div class="resumen-val">${paid} / ${paid+pending}</div><div class="resumen-lbl">Pagos recibidos</div></div>`;
-  document.getElementById('resumen-list').innerHTML = rows.map(r =>
-    `<div class="resumen-row"><span class="resumen-row-name">${r.name}</span>${r.paid
-      ? `<span class="resumen-row-amount">${r.amount ? 'S/. ' + r.amount.toFixed(0) : '✓'}</span>`
-      : `<span class="resumen-row-pending">Pendiente</span>`}</div>`
-  ).join('');
-  document.getElementById('resumen-overlay').classList.add('open');
-}
-function closeResumen() { document.getElementById('resumen-overlay').classList.remove('open'); }
-
-// ── WHATSAPP ───────────────────────────────────────────────────
-function sendWAReminder() {
-  const s = state.students.find(x => x.id === currentStudentId); if (!s) return;
-  if (!s.phone) { showToast('Agrega un número WhatsApp primero'); return; }
-  const phone = s.phone.replace(/[^0-9]/g, '');
-  const msg = encodeURIComponent(
-    'Buen día, nos vemos el ' + (s.day || '') + ' a las ' + (s.time ? fmtTime(s.time) : '') + ' para la sesión de guitarra. 🎸'
-  );
-  window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
-}
-function sendWARecup() {
-  const s = state.students.find(x => x.id === currentStudentId); if (!s) return;
-  if (!s.phone) { showToast('Agrega un número WhatsApp primero'); return; }
-  const phone = s.phone.replace(/[^0-9]/g, '');
-  const recup = state.recuperaciones && state.recuperaciones.find(r => r.studentId === s.id && !r.done);
-  let msg;
-  if (recup && recup.fecha) {
-    const fecha = new Date(recup.fecha).toLocaleString('es-PE', {weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'});
-    msg = encodeURIComponent('Buenos días, no olvides que nuestra sesión de recuperación será el ' + fecha + '. 🎸');
-  } else {
-    msg = encodeURIComponent('Buenos días, estamos coordinando la fecha de nuestra sesión de recuperación. ¿Cuándo tienes disponibilidad? 🎸');
-  }
-  window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
-}
-function toggleHistorial() {
-  const list = document.getElementById('historial-list');
-  const arrow = document.getElementById('historial-arrow');
-  arrow.textContent = list.classList.toggle('open') ? '▼' : '▶';
 }
 
 // ── INIT ──────────────────────────────────────────────────────
