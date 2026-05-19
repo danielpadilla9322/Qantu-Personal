@@ -865,9 +865,9 @@ function renderList() {
         <div class="student-info">
           <div class="student-name" style="${s.grupal ? 'color:#c8c4b8' : ''}">${s.name}${s.rental ? '<span class="rental-badge">🎸 alquiler</span>' : ''}</div>
           <div class="student-meta">
-            <span class="meta-time" style="${s.grupal ? 'color:#b8a87a' : ''}">${(()=>{const t=fmtTime(s.time)||'–';if(!s.time)return t;if(s.timeEnd)return t+' – '+fmtTime(s.timeEnd);const[h,m]=s.time.split(':').map(Number),dur=s.tarifa==='A'?30:s.tarifa==='B'?45:60,tot=h*60+m+dur,eh=Math.floor(tot/60),em=tot%60,ep=eh>=12?'pm':'am',ehh=eh>12?eh-12:eh===0?12:eh;return t+' – '+ehh+':'+String(em).padStart(2,'0')+' '+ep;})()}</span>
+            <span class="meta-time" style="${s.grupal ? 'color:#b8a87a' : ''}">${fmtTime(s.time) || '–'}</span>
             <span class="meta-sep">·</span>
-            ${s.grupal ? 'Grupal' : s.exception ? 'Libre · '+s.dest : 'Tarifa '+s.tarifa+(discountLabel ? ' · '+discountLabel : '')+' · '+s.dest}
+            ${s.grupal ? 'Grupal' : s.exception ? 'Libre' : s.tarifa+(s.dest==='Pago a Qantu'||s.dest==='Yape a secretaría'||s.dest==='Qantu' ? ' · Qantu' : ' · Profesor')}
           </div>
         </div>
         <div class="student-right">
@@ -1447,10 +1447,21 @@ function exportScheduleImage() {
         ctx.fill();
       }
 
-      // Time
+      // Time — start to end
       ctx.fillStyle = color;
       ctx.font = 'bold 12px -apple-system, sans-serif';
-      ctx.fillText(fmtTime(s.time) || '–', x + 10, y + 20);
+      const endTime = (() => {
+        if (s.timeEnd) return fmtTime(s.timeEnd);
+        if (!s.time) return '';
+        const [h,m] = s.time.split(':').map(Number);
+        const dur = s.tarifa==='A' ? 30 : s.tarifa==='B' ? 45 : 60;
+        const tot = h*60 + m + dur;
+        const eh = Math.floor(tot/60), em = tot%60;
+        const ep = eh>=12?'pm':'am', ehh = eh>12?eh-12:eh===0?12:eh;
+        return ehh+':'+String(em).padStart(2,'0')+' '+ep;
+      })();
+      const timeStr = (fmtTime(s.time) || '–') + (endTime ? ' – ' + endTime : '');
+      ctx.fillText(timeStr, x + 10, y + 20);
 
       // Name
       ctx.fillStyle = '#f5eed8';
