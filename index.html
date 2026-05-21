@@ -298,6 +298,23 @@ html, body { height:100%; background:var(--bg); color:var(--cream); font-family:
 .recup-add-fab { position:fixed; bottom:24px; right:20px; z-index:195; width:52px; height:52px; border-radius:50%; border:none; background:var(--gold); color:#0e0c09; font-size:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 20px rgba(201,168,76,0.35); }
 .recup-count { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:var(--red); color:white; font-size:9px; font-weight:700; margin-left:4px; vertical-align:middle; }
 .student-card.blocked { border-style:dashed; border-color:rgba(122,168,196,0.3); opacity:0.55; }
+.resumen-overlay{position:fixed;inset:0;z-index:180;background:rgba(0,0,0,0.65);opacity:0;pointer-events:none;transition:opacity 0.25s}
+.resumen-overlay.open{opacity:1;pointer-events:all}
+.resumen-box{position:fixed;bottom:0;left:0;right:0;z-index:190;background:var(--bg);border-top:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px 18px 40px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1)}
+.resumen-overlay.open .resumen-box{transform:translateY(0)}
+.resumen-title{font-size:16px;font-weight:700;color:var(--cream);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.resumen-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.resumen-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.resumen-card.highlight{border-color:var(--gold);background:var(--gold-dim)}
+.resumen-val{font-size:24px;font-weight:700;color:var(--cream);line-height:1}
+.resumen-card.highlight .resumen-val{color:var(--gold-light)}
+.resumen-lbl{font-size:10px;color:var(--muted);letter-spacing:0.07em;text-transform:uppercase;margin-top:4px}
+.resumen-list{max-height:200px;overflow-y:auto}
+.resumen-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.resumen-row:last-child{border-bottom:none}
+.resumen-row-name{color:var(--cream)}
+.resumen-row-amount{color:var(--gold);font-weight:600}
+.resumen-row-pending{color:var(--red);font-size:11px}
 .badge-blocked { background:rgba(122,168,196,0.15); color:var(--blue); border:1px solid rgba(122,168,196,0.3); }
 
 /* ── RENTAL BADGE ── */
@@ -363,6 +380,7 @@ html, body { height:100%; background:var(--bg); color:var(--cream); font-family:
   <button class="month-nav" onclick="changeMonth(-1)">‹</button>
   <span class="month-label" id="month-label"></span>
   <button class="month-nav" onclick="changeMonth(1)">›</button>
+  <button onclick="openResumen()" style="padding:0 12px;height:32px;border-radius:8px;border:1px solid var(--gold);background:var(--gold-dim);color:var(--gold);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">S/.</button>
 </div>
 
 <div class="list-wrap" id="student-list"></div>
@@ -375,6 +393,15 @@ html, body { height:100%; background:var(--bg); color:var(--cream); font-family:
   <div class="recup-header"><span class="recup-title">Recuperaciones</span><button class="detail-close" onclick="closeRecup()">✕</button></div>
   <div class="recup-body" id="recup-body"></div>
   <button class="recup-add-fab" onclick="openRecupModal()">＋</button>
+</div>
+<!-- RESUMEN MODAL -->
+<div class="resumen-overlay" id="resumen-overlay" onclick="closeResumen()">
+  <div class="resumen-box" onclick="event.stopPropagation()">
+    <div class="resumen-title"><span id="resumen-month-label"></span><button class="detail-close" onclick="closeResumen()">✕</button></div>
+    <div class="resumen-grid" id="resumen-grid"></div>
+    <div class="resumen-list" id="resumen-list"></div>
+    <button onclick="copyResumen()" style="width:100%;margin-top:14px;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--cream);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">📋 Copiar resumen</button>
+  </div>
 </div>
 <div class="detail-overlay" id="detail-overlay" onclick="closeDetail()"></div>
 <div class="detail-panel" id="detail-panel">
@@ -772,7 +799,7 @@ function studentRecord(sid) {
   const sMonth = s_ref ? (s_ref.startMonth ?? 2) : 2;
   const [recYear, recMon] = mk.split('-').map(Number);
   if ((recMon - 1) < sMonth && recYear <= currentYear) return null; // before start
-  if (!state.records[sid][mk]) state.records[sid][mk] = { classes:[false,false,false,false], classDates:['','','',''], amount:'', payDate:'', method:'', notes:'' };
+  if (!state.records[sid][mk]) state.records[sid][mk] = { classes:[false,false,false,false], classDates:['','','',''], amount:'', payDate:'', method:'', dest:'', notes:'' };
   return state.records[sid][mk];
 }
 function initials(name) {
@@ -1022,11 +1049,12 @@ function openDetail(sid) {
   // Dest
   const dr = document.getElementById('d-dest');
   dr.innerHTML = '';
+  const currentDest = rec.dest || s.dest || '';
   DESTS.forEach(d => {
     const c = document.createElement('button');
-    c.className = 'method-chip' + (s.dest===d?' active':'');
+    c.className = 'method-chip' + (currentDest===d?' active':'');
     c.textContent = d;
-    c.onclick = () => { s.dest=d; save(); renderList(); dr.querySelectorAll('.method-chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); };
+    c.onclick = () => { rec.dest=d; save(); dr.querySelectorAll('.method-chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); };
     dr.appendChild(c);
   });
 
@@ -1505,6 +1533,83 @@ function exportScheduleImage() {
     URL.revokeObjectURL(url);
     showToast('Horario exportado ✓');
   }, 'image/png');
+}
+
+// ── RESUMEN ───────────────────────────────────────────────────
+function openResumen() {
+  const mk = monthKey(); let paid=0, pending=0, total=0, rows=[];
+  state.students.forEach(s => {
+    if (s.grupal) return;
+    const rec = state.records[s.id] && state.records[s.id][mk];
+    if (!rec || rec.blocked) return;
+    if (rec.payDate) {
+      paid++; const amt = parseFloat(rec.amount)||0; total += amt;
+      rows.push({name:s.name, amount:amt, paid:true, method:rec.method||''});
+    } else { pending++; rows.push({name:s.name, amount:null, paid:false, method:''}); }
+  });
+  document.getElementById('resumen-month-label').textContent = MONTHS[currentMonth]+' '+currentYear;
+  document.getElementById('resumen-grid').innerHTML =
+    '<div class="resumen-card highlight"><div class="resumen-val">S/. '+total.toFixed(0)+'</div><div class="resumen-lbl">Total recaudado</div></div>'+
+    '<div class="resumen-card"><div class="resumen-val">'+paid+' / '+(paid+pending)+'</div><div class="resumen-lbl">Pagos recibidos</div></div>';
+  document.getElementById('resumen-list').innerHTML = rows.map(r =>
+    '<div class="resumen-row"><span class="resumen-row-name">'+r.name+'</span>'+
+    '<span style="display:flex;align-items:center;gap:8px">'+
+    (r.method?'<span style="font-size:10px;color:var(--muted)">'+r.method+'</span>':'')+
+    (r.paid?'<span class="resumen-row-amount">'+(r.amount?'S/. '+r.amount.toFixed(0):'✓')+'</span>':'<span class="resumen-row-pending">Pendiente</span>')+
+    '</span></div>'
+  ).join('');
+  document.getElementById('resumen-overlay').classList.add('open');
+}
+function closeResumen() { document.getElementById('resumen-overlay').classList.remove('open'); }
+
+function copyResumen() {
+  const mk = monthKey();
+  const titleEl = document.getElementById('app-title');
+  const teacher = titleEl ? titleEl.textContent.trim() : 'Escuela Qantu';
+  const monthName = MONTHS[currentMonth] + ' ' + currentYear;
+  const tarifaLabel = {A:'Plan A (30 min)', B:'Plan B (45 min)', C:'Plan C (1 hora)'};
+
+  let paidLines = [], pendingLines = [], total = 0;
+
+  state.students.forEach(s => {
+    if (s.grupal) return;
+    const rec = state.records[s.id] && state.records[s.id][mk];
+    if (!rec || rec.blocked) return;
+    const plan = tarifaLabel[s.tarifa] || ('Tarifa ' + s.tarifa);
+    if (rec.payDate) {
+      const fecha = new Date(rec.payDate).toLocaleDateString('es-PE', {day:'numeric', month:'long'});
+      const monto = rec.amount ? 'S/. ' + parseFloat(rec.amount).toFixed(0) : 'sin monto';
+      const dest  = rec.dest || s.dest || '';
+      const method = rec.method || '';
+      total += parseFloat(rec.amount) || 0;
+      let line = '* ' + s.name + ' | ' + plan + ' | ' + monto + ' | ' + fecha;
+      if (dest)   line += ' | ' + dest;
+      if (method) line += ' (' + method + ')';
+      paidLines.push(line);
+    } else {
+      pendingLines.push('* ' + s.name + ' | ' + plan + ' | PENDIENTE');
+    }
+  });
+
+  let text = 'Resumen de pagos - ' + monthName + '\n' + teacher + '\n\n';
+  if (paidLines.length) {
+    text += 'PAGADO (' + paidLines.length + '):\n';
+    text += paidLines.join('\n') + '\n\n';
+  }
+  if (pendingLines.length) {
+    text += 'PENDIENTE (' + pendingLines.length + '):\n';
+    text += pendingLines.join('\n') + '\n\n';
+  }
+  text += 'Total recaudado: S/. ' + total.toFixed(0);
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Resumen copiado');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); showToast('Resumen copiado');
+  });
 }
 
 // ── INIT ──────────────────────────────────────────────────────
