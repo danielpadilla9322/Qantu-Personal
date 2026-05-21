@@ -1540,6 +1540,10 @@ function openResumen() {
   const mk = monthKey(); let paid=0, pending=0, total=0, rows=[];
   state.students.forEach(s => {
     if (s.grupal) return;
+    // Check if student has started
+    const sMonth = s.startMonth ?? 2;
+    const [recYear, recMon] = mk.split('-').map(Number);
+    if ((recMon - 1) < sMonth && recYear <= currentYear) return; // student hasn't started yet
     const rec = state.records[s.id] && state.records[s.id][mk];
     if (!rec || rec.blocked) return;
     if (rec.payDate) {
